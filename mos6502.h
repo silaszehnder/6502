@@ -8,6 +8,11 @@ public:
 private:
     /**** CONSTANTS ****/
 
+    // Opcode Addressing Modes
+    enum class Group1 {IMM, ZP, ZPX, ABS, ABSX, ABSY, IDXIND, INDIDX};
+    enum class Group2 {ZP, ZPX, ABS, ABSZ, ACC};
+    enum class Group3 {ZP, ABS, ZPX, IMM};
+
     /**** REGISTERS ****/
     // PSR
     union {
@@ -127,6 +132,9 @@ private:
     void op_tsx();
     void op_txa();
     void op_txs();
+    //enum class Group1 {IMM, ZP, ZPX, ABS, ABSX, ABSY, IDXIND, INDIDX};
+    //enum class Group2 {ZP, ZPX, ABS, ABSZ, ACC};
+    //enum class Group3 {ZP, ABS, ZPX, IMM};
 
     void (mos6502::*ops[256])() {
         &mos6502::op_brk,
