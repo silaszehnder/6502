@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -6,16 +7,10 @@ class mos6502 {
 public:
     mos6502();
 private:
-    /**** CONSTANTS ****/
-
-    // Opcode Addressing Modes
-    enum class Group1 {IMM, ZP, ZPX, ABS, ABSX, ABSY, IDXIND, INDIDX};
-    enum class Group2 {ZP, ZPX, ABS, ABSZ, ACC};
-    enum class Group3 {ZP, ABS, ZPX, IMM};
-
     /**** REGISTERS ****/
+
     // PSR
-    union {
+    union PSR {
         struct {
             char N:1;
             char V:1;
@@ -27,367 +22,217 @@ private:
             char C:1;
         };
         char reg;
-    }PSR;
+    };
 
     // Accumulator
-    union {
+    union A {
         struct {
             // TODO 
         };
         char reg;
-    }A;
+    };
 
     // Index register Y
-    union {
+    union Y {
         struct {
             // TODO
         };
         char reg;
-    }Y;
+    };
 
     // Index register X
-    union {
+    union X {
         struct {
             // TODO 
         };
         char reg;
-    }X;
+    };
 
     // Program counter
-    union {
+    union PC {
         struct {
             char PCH:8;
             char PCL:8;
         };
         uint16_t reg;
-    }PC;
+    };
 
     // Stack pointer
-    union {
+    union SPR {
         struct {
             char unused:2;
             char val:8;
         };
         uint16_t reg;
-    }SPR;
+    };
 
     // TODO: I/O registers
 
-    /**** OPCODES ****/
-    void op_noop();
+    struct INSTR {
+        std::string name;
+        uint8_t (mos6502::*op)(void) = nullptr;    
+        uint8_t (mos6502::*addr)(void) = nullptr;    
+        uint8_t cycles;
+    };
 
-    void op_adc();
-    void op_and();
-    void op_asl();
-    void op_bcc();
-    void op_bcs();
-    void op_beq();
-    void op_bit();
-    void op_bmi();
-    void op_bne();
-    void op_bpl();
-    void op_brk();
-    void op_bvc();
-    void op_bvs();
-    void op_clc();
-    void op_cld();
-    void op_cli();
-    void op_clv();
-    void op_cmp();
-    void op_cpx();
-    void op_cpy();
-    void op_dec();
-    void op_dex();
-    void op_dey();
-    void op_eor();
-    void op_inc();
-    void op_inx();
-    void op_iny();
-    void op_jmp();
-    void op_jsr();
-    void op_lda();
-    void op_ldx();
-    void op_ldy();
-    void op_lsr();
-    void op_nop();
-    void op_ora();
-    void op_pha();
-    void op_php();
-    void op_pla();
-    void op_plp();
-    void op_rol();
-    void op_ror();
-    void op_rti();
-    void op_rts();
-    void op_sbc();
-    void op_sec();
-    void op_sed();
-    void op_sei();
-    void op_sta();
-    void op_stx();
-    void op_sty();
-    void op_tax();
-    void op_tay();
-    void op_tya();
-    void op_tsx();
-    void op_txa();
-    void op_txs();
-    //enum class Group1 {IMM, ZP, ZPX, ABS, ABSX, ABSY, IDXIND, INDIDX};
-    //enum class Group2 {ZP, ZPX, ABS, ABSZ, ACC};
-    //enum class Group3 {ZP, ABS, ZPX, IMM};
+    // Opcode Addressing Modes
+    uint8_t IMM();
+    uint8_t ZP();
+    uint8_t ZPX();
+    uint8_t ZPY();
+    uint8_t ABS();
+    uint8_t ABSX();
+    uint8_t ABSY();
+    uint8_t ABSZ();
+    uint8_t INDX();
+    uint8_t INDY();
+    uint8_t ACC();
 
-    void (mos6502::*ops[256])() {
-        &mos6502::op_brk,
-        &mos6502::op_ora,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_ora,           // Zero Page
-        &mos6502::op_asl,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_php,
-        &mos6502::op_ora,           // Immediate
-        &mos6502::op_asl,           // Accumulator
-        &mos6502::op_noop,
-        &mos6502::op_bpl,           //
-        &mos6502::op_ora,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_ora,           // Zero Page, X
-        &mos6502::op_asl,           // Zero Page, X
-        &mos6502::op_noop,
-        &mos6502::op_clc,
-        &mos6502::op_ora,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_ora,           // Absolute, X
-        &mos6502::op_asl,           // Absolute, X
-        &mos6502::op_noop,
-        &mos6502::op_jsr,
-        &mos6502::op_and,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_bit,           // Zero Page
-        &mos6502::op_and,           // Zero Page
-        &mos6502::op_rol,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_plp,
-        &mos6502::op_and,           // Immediate
-        &mos6502::op_rol,           // Accumulator
-        &mos6502::op_noop,
-        &mos6502::op_bit,           // Absolute
-        &mos6502::op_and,           // Absolute
-        &mos6502::op_rol,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_bmi,
-        &mos6502::op_and,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_and,           // Zero Page, X
-        &mos6502::op_rol,           // Zero Page, X
-        &mos6502::op_noop,
-        &mos6502::op_sec,
-        &mos6502::op_and,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_and,           // Absolute, X
-        &mos6502::op_rol,           // Absolute, X
-        &mos6502::op_noop,
-        &mos6502::op_rti,
-        &mos6502::op_eor,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_eor,           // Zero Page
-        &mos6502::op_lsr,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_pha,
-        &mos6502::op_eor,           // Immediate
-        &mos6502::op_lsr,           // Accumulator
-        &mos6502::op_noop,
-        &mos6502::op_jmp,           // Absolute
-        &mos6502::op_eor,           // Absolute
-        &mos6502::op_lsr,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_bvc,
-        &mos6502::op_eor,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_eor,           // Zero Page, X
-        &mos6502::op_lsr,           // Zero Page, X
-        &mos6502::op_noop,
-        &mos6502::op_cli,
-        &mos6502::op_eor,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_eor,           // Absolute, X
-        &mos6502::op_lsr,           // Absolute, X
-        &mos6502::op_noop,
-        &mos6502::op_rts,
-        &mos6502::op_adc,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_adc,           // Zero Page
-        &mos6502::op_ror,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_pla,
-        &mos6502::op_adc,           // Immediate
-        &mos6502::op_ror,           // Accumulator
-        &mos6502::op_noop,
-        &mos6502::op_jmp,           // Indirect
-        &mos6502::op_adc,           // Absolute
-        &mos6502::op_ror,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_bvs,
-        &mos6502::op_adc,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_adc,           // Zero Page, X
-        &mos6502::op_ror,           // Zero Page, X
-        &mos6502::op_noop,
-        &mos6502::op_sei,
-        &mos6502::op_adc,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_adc,           // Absolute, X
-        &mos6502::op_ror,           // Absolute, X
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_sta,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_sty,           // Zero Page
-        &mos6502::op_sta,           // Zero Page
-        &mos6502::op_stx,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_dey,
-        &mos6502::op_noop,
-        &mos6502::op_txa,
-        &mos6502::op_noop,
-        &mos6502::op_sty,           // Absolute
-        &mos6502::op_sta,           // Absolute
-        &mos6502::op_stx,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_bcc,
-        &mos6502::op_sta,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_sty,           // Zero Page, X
-        &mos6502::op_sta,           // Zero Page, X
-        &mos6502::op_stx,           // Zero Page, Y
-        &mos6502::op_noop,
-        &mos6502::op_tya,
-        &mos6502::op_sta,           // Absolute, Y
-        &mos6502::op_txs,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_sta,           // Absolute, X
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_ldy,           // Immediate
-        &mos6502::op_lda,           // (Indirect, X)
-        &mos6502::op_ldx,           // Immediate
-        &mos6502::op_noop,
-        &mos6502::op_ldy,           // Zero Page
-        &mos6502::op_lda,           // Zero Page
-        &mos6502::op_ldx,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_tay,
-        &mos6502::op_lda,           // Immediate
-        &mos6502::op_tax,
-        &mos6502::op_noop,
-        &mos6502::op_ldy,           // Absolute
-        &mos6502::op_lda,           // Absolute
-        &mos6502::op_ldx,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_bcs,
-        &mos6502::op_lda,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_ldy,           // Zero Page, X
-        &mos6502::op_lda,           // Zero Page, X
-        &mos6502::op_ldx,           // Zero Page, Y
-        &mos6502::op_noop,
-        &mos6502::op_clv,
-        &mos6502::op_lda,           // Absolute, Y
-        &mos6502::op_tsx,
-        &mos6502::op_noop,
-        &mos6502::op_ldy,           // Absolute, X
-        &mos6502::op_lda,           // Absolute, X
-        &mos6502::op_ldx,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_cpy,           // Immediate
-        &mos6502::op_cmp,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_cpy,           // Zero Page
-        &mos6502::op_cmp,           // Zero Page
-        &mos6502::op_dec,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_iny,
-        &mos6502::op_cmp,           // Immediate
-        &mos6502::op_dex,
-        &mos6502::op_noop,
-        &mos6502::op_cpy,           // Absolute
-        &mos6502::op_cmp,           // Absolute
-        &mos6502::op_dec,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_bne,
-        &mos6502::op_cmp,           // (Indrect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_cmp,           // Zero Page, X
-        &mos6502::op_dec,           // Zero Page, X
-        &mos6502::op_noop,
-        &mos6502::op_cld,
-        &mos6502::op_cmp,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_cmp,           // Absolute, X
-        &mos6502::op_dec,           // Absolute, X
-        &mos6502::op_noop,
-        &mos6502::op_cpx,           // Immediate
-        &mos6502::op_sbc,           // (Indirect, X)
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_cpx,           // Zero Page
-        &mos6502::op_sbc,           // Zero Page
-        &mos6502::op_inc,           // Zero Page
-        &mos6502::op_noop,
-        &mos6502::op_inx,
-        &mos6502::op_sbc,           // Immediate
-        &mos6502::op_nop,
-        &mos6502::op_noop,
-        &mos6502::op_cpx,           // Absolute
-        &mos6502::op_sbc,           // Absolute
-        &mos6502::op_inc,           // Absolute
-        &mos6502::op_noop,
-        &mos6502::op_beq,
-        &mos6502::op_sbc,           // (Indirect), Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_sbc,           // Zero Page, X
-        &mos6502::op_inc,           // Zero Page, X
-        &mos6502::op_noop,
-        &mos6502::op_sed,
-        &mos6502::op_sbc,           // Absolute, Y
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_noop,
-        &mos6502::op_sbc,           // Absolute, X
-        &mos6502::op_inc,           // Absolute, X
-        &mos6502::op_noop
+    // Opcodes
+    uint8_t op_noop();
+
+    uint8_t op_adc(); uint8_t op_and(); uint8_t op_asl(); uint8_t op_bcc(); uint8_t op_bcs(); uint8_t op_beq(); uint8_t op_bit();
+    uint8_t op_bmi(); uint8_t op_bne(); uint8_t op_bpl(); uint8_t op_brk(); uint8_t op_bvc(); uint8_t op_bvs(); uint8_t op_clc();
+    uint8_t op_cld(); uint8_t op_cli(); uint8_t op_clv(); uint8_t op_cmp(); uint8_t op_cpx(); uint8_t op_cpy(); uint8_t op_dec();
+    uint8_t op_dex(); uint8_t op_dey(); uint8_t op_eor(); uint8_t op_inc(); uint8_t op_inx(); uint8_t op_iny(); uint8_t op_jmp();
+    uint8_t op_jsr(); uint8_t op_lda(); uint8_t op_ldx(); uint8_t op_ldy(); uint8_t op_lsr(); uint8_t op_nop(); uint8_t op_ora();
+    uint8_t op_pha(); uint8_t op_php(); uint8_t op_pla(); uint8_t op_plp(); uint8_t op_rol(); uint8_t op_ror(); uint8_t op_rti();
+    uint8_t op_rts(); uint8_t op_sbc(); uint8_t op_sec(); uint8_t op_sed(); uint8_t op_sei(); uint8_t op_sta(); uint8_t op_stx();
+    uint8_t op_sty(); uint8_t op_tax(); uint8_t op_tay(); uint8_t op_tya(); uint8_t op_tsx(); uint8_t op_txa(); uint8_t op_txs();
+
+    using m = mos6502;
+    INSTR ops [256] = {
+        {"brk", &m::op_brk, nullptr}, {"ora", &m::op_ora, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"ora", &m::op_ora, &m::ZP},
+        {"asl", &m::op_asl, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"php", &m::op_php, nullptr}, {"ora", &m::op_ora, &m::IMM},
+        {"asl", &m::op_asl, &m::ACC}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"ora", &m::op_ora, &m::ABS},
+        {"asl", &m::op_asl, &m::ABS, {"future", &m::op_noop, nullptr},
+        {"bpl", &m::op_bpl, nullptr}, {"ora", &m::op_ora, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"ora", &m::op_ora, &m::ZPX},
+        {"asl", &m::op_asl, &m::ZPX}, {"future", &m::op_noop, nullptr},
+        {"clc", &m::op_clc, nullptr}, {"ora", &m::op_ora, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"ora", &m::op_ora, &m::ABSX},
+        {"asl", &m::op_asl, &m::ABSX}, {"future", &m::op_noop, nullptr},
+        {"jsr", &m::op_jsr, nullptr}, {"and", &m::op_and, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"bit", &m::op_bit, &m::ZP}, {"and", &m::op_and, &m::ZP},
+        {"rol", &m::op_rol, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"plp", &m::op_plp, nullptr}, {"and", &m::op_and, &m::IMM},
+        {"rol", &m::op_rol, &m::ACC}, {"future", &m::op_noop, nullptr},
+        {"bit", &m::op_bit, &m::ABS}, {"and", &m::op_and, &m::ABS},
+        {"rol", &m::op_rol, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"bmi", &m::op_bmi, nullptr}, {"and", &m::op_and, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"and", &m::op_and, &m::ZPX},
+        {"rol", &m::op_rol, &m::ZPX}, {"future", &m::op_noop, nullptr},
+        {"sec", &m::op_sec, nullptr}, {"and", &m::op_and, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"and", &m::op_and, &m::ABSX},
+        {"rol", &m::op_rol, &m::ABSX}, {"future", &m::op_noop, nullptr},
+        {"rti", &m::op_rti, nullptr}, {"eor", &m::op_eor, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"eor", &m::op_eor, &m::ZP},
+        {"lsr", &m::op_lsr, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"pha", &m::op_pha, nullptr}, {"eor", &m::op_eor, &m::IMM},
+        {"lsr", &m::op_lsr, &m::ACC}, {"future", &m::op_noop, nullptr},
+        {"jmp", &m::op_jmp, &m::ABS}, {"eor", &m::op_eor, &m::ABS},
+        {"lsr", &m::op_lsr, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"bvc", &m::op_bvc, nullptr}, {"eor", &m::op_eor, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"eor", &m::op_eor, &m::ZPX},
+        {"lsr", &m::op_lsr, &m::ZPX}, {"future", &m::op_noop, nullptr},
+        {"cli", &m::op_cli, nullptr}, {"eor", &m::op_eor, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"eor", &m::op_eor, &m::ABSX},
+        {"lsr", &m::op_lsr, &m::ABSX}, {"future", &m::op_noop, nullptr},
+        {"cli", &m::op_cli, nullptr}, {"eor", &m::op_eor, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"eor", &m::op_eor, &m::ABSX},
+        {"lsr", &m::op_lsr, &m::ABSX}, {"future", &m::op_noop, nullptr},
+        {"rts", &m::op_rts, nullptr}, {"adc", &m::op_adc, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"adc", &m::op_adc, &m::ZP},
+        {"ror", &m::op_ror, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"pla", &m::op_pla, nullptr}, {"adc", &m::op_adc, &m::IMM},
+        {"ror", &m::op_ror, &m::ACC}, {"future", &m::op_noop, nullptr},
+        {"jmp", &m::op_jmp, &m::IND}, {"adc", &m::op_adc, &m::ABS},
+        {"ror", &m::op_ror, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"bvs", &m::op_bvs, nullptr}, {"adc", &m::op_adc, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"adc", &m::op_adc, &m::ZPX},
+        {"ror", &m::op_ror, &m::ZPX}, {"future", &m::op_noop, nullptr},
+        {"sei", &m::op_sei, nullptr}, {"adc", &m::op_adc, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"adc", &m::op_adc, &m::ABSX},
+        {"ror", &m::op_ror, &m::ABSX}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"sta", &m::op_sta, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"sty", &m::op_sty, &m::ZP}, {"sta", &m::op_sta, &m::ZP},
+        {"stx", &m::op_stx, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"dey", &m::op_dey, nullptr}, {"future", &m::op_noop, nullptr},
+        {"txa", &m::op_txa, nullptr}, {"future", &m::op_noop, nullptr},
+        {"sty", &m::op_sty, &m::ABS}, {"sta", &m::op_sta, &m::ABS},
+        {"stx", &m::op_stx, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"bcc", &m::op_bcc, nullptr}, {"sta", &m::op_sta, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"sty", &m::op_sty, &m::ZPX}, {"sta", &m::op_sta, &m::ZPX},
+        {"stx", &m::op_stx, &m::ZPY}, {"future", &m::op_noop, nullptr},
+        {"tya", &m::op_tya, nullptr}, {"sta", &m::op_sta, &m::ABSY},
+        {"txs", &m::op_txs, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"sta", &m::op_sta, &m::ABSX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"ldy", &m::op_ldy, &m::IMM}, {"lda", &m::op_lda, &m::INDX},
+        {"ldx", &m::op_ldx, &m::IMM}, {"future", &m::op_noop, nullptr},
+        {"ldy", &m::op_ldy, &m::ZP}, {"lda", &m::op_lda, &m::ZP},
+        {"ldx", &m::op_ldx, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"tay", &m::op_tay, nullptr}, {"lda", &m::op_lda, &m::IMM},
+        {"tax", &m::op_tax, nullptr}, {"future", &m::op_noop, nullptr},
+        {"ldy", &m::op_ldy, &m::ABS}, {"lda", &m::op_lda, &m::ABS},
+        {"ldx", &m::op_ldx, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"bcs", &m::op_bcs, nullptr}, {"lda", &m::op_lda, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"ldy", &m::op_ldy, &m::ZPX}, {"lda", &m::op_lda, &m::ZPX},
+        {"ldx", &m::op_ldx, &m::ZPY}, {"future", &m::op_noop, nullptr},
+        {"clv", &m::op_clv, nullptr}, {"lda", &m::op_lda, &m::ABSY},
+        {"tsx", &m::op_tsx, nullptr}, {"future", &m::op_noop, nullptr},
+        {"ldy", &m::op_ldy, &m::ABSX}, {"lda", &m::op_lda, &m::ABSX},
+        {"ldx", &m::op_ldx, &m::ABSY}, {"future", &m::op_noop, nullptr},
+        {"cpy", &m::op_cpy, &m::IMM}, {"cmp", &m::op_cmp, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"cpy", &m::op_cpy, &m::ZP}, {"cmp", &m::op_cmp, &m::ZP},
+        {"dec", &m::op_dec, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"iny", &m::op_iny, nullptr}, {"cmp", &m::op_cmp, &m::IMM},
+        {"dex", &m::op_dex, nullptr}, {"future", &m::op_noop, nullptr},
+        {"cpy", &m::op_cpy, &m::ABS}, {"cmp", &m::op_cmp, &m::ABS},
+        {"dec", &m::op_dec, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"bne", &m::op_bne, nullptr}, {"cmp", &m::op_cmp, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"cmp", &m::op_cmp, &m::ZPX},
+        {"dec", &m::op_dec, &m::ZPX}, {"future", &m::op_noop, nullptr},
+        {"cld", &m::op_cld, nullptr}, {"cmp", &m::op_cmp, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"cmp", &m::op_cmp, &m::ABSX},
+        {"dec", &m::op_dec, &m::ABSX}, {"future", &m::op_noop, nullptr},
+        {"cpx", &m::op_cpx, &m::IMM}, {"sbc", &m::op_sbc, &m::INDX},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"cpx", &m::op_cpx, &m::ZP}, {"sbc", &m::op_sbc, &m::ZP},
+        {"inc", &m::op_inc, &m::ZP}, {"future", &m::op_noop, nullptr},
+        {"inx", &m::op_inx, nullptr}, {"sbc", &m::op_sbc, &m::IMM},
+        {"nop", &m::op_nop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"cpx", &m::op_cpx, &m::ABS}, {"sbc", &m::op_sbc, &m::ABS},
+        {"inc", &m::op_inc, &m::ABS}, {"future", &m::op_noop, nullptr},
+        {"beq", &m::op_beq, nullptr}, {"sbc", &m::op_sbc, &m::INDY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"sbc", &m::op_sbc, &m::ZPX},
+        {"inc", &m::op_inc, &m::ZPX}, {"future", &m::op_noop, nullptr},
+        {"sed", &m::op_sed, nullptr}, {"sbc", &m::op_sbc, &m::ABSY},
+        {"future", &m::op_noop, nullptr}, {"future", &m::op_noop, nullptr},
+        {"future", &m::op_noop, nullptr}, {"sbc", &m::op_sbc, &m::ABSX},
+        {"inc", &m::op_inc, &m::ABSX}, {"future", &m::op_noop, nullptr},
     };
 };
